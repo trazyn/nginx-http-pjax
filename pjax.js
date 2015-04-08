@@ -34,27 +34,41 @@
 
 	function process( url ) {
 	
-		return $.ajax( $.extend( {}, settings.ajaxOptions, {
-			url: url
-		} ) )
-		.done( function( data ) {
-		
-			settings.container.html( data );
+		var state;
 
-			state = {
-				url: url,
-				title: document.title,
-				content: data
-			};
+		url = typeof url === "string" ? url : window.location.pathname;
 
-			if ( settings.push || settings.replace ) {
-				window.history[ settings.push ? "pushState" : "replaceState" ]( state, document.title, url )
-			}
+		state = cacheEntries[ cacheMapping[ url ] ];
 
-			if ( settings.cache && settings.maxCacheLength ) {
-				cachePush( state );
-			}
-		} );
+		request && request.readyState < 4 && request.abort();
+
+		if ( state && state.content ) {
+
+			settings.container.html( state.content );
+			window.history.pushState( state, state.title, state.url );
+		} else {
+			request = $.ajax( $.extend( {}, settings.ajaxOptions, {
+				url: url + "?" + +new Date()
+			} ) )
+			.done( function( data ) {
+			
+				settings.container.html( data );
+
+				state = {
+					url: url,
+					title: document.title,
+					content: data
+				};
+
+				if ( settings.push || settings.replace ) {
+					window.history[ settings.push ? "pushState" : "replaceState" ]( state, document.title, url )
+				}
+
+				if ( settings.cache && settings.maxCacheLength ) {
+					cachePush( state );
+				}
+			} );
+		}
 	}
 
 	$.support.pjax = 
@@ -88,19 +102,9 @@
 			}
 		}
 
-		window.history.replaceState( state, document.title, location.href );
+		window.history.pushState( state, document.title, location.href );
 
-		$( window ).on( "popstate.pjax", function( e ) {
-		
-			var 
-			state = cacheEntries[ cacheMapping[ location.pathname ] ];
-			
-			if ( !state || !state.content ) {
-				process( location.pathname );
-			} else {
-				settings.container.html( state.content );
-			}
-		} );
+		$( window ).on( "popstate.pjax", process  );
 		
 		return this
 			.delegate( selector, "click.pjax", function( e ) {
@@ -125,10 +129,7 @@
 				e.preventDefault();
 				e.stopPropagation();
 
-				/** Cancel the current request if we're already pjaxing */
-				request && request.readState && request.abort();
-
-				request = process( link.getAttribute( "href" ) );
+				process( link.getAttribute( "href" ) );
 			} );
 	};
 
@@ -146,7 +147,7 @@
 			type: "GET",
 			dataType: "html",
 			headers: {
-				"X-PJAX": "1.0"
+				"X-PJAX": true
 			}
 		}
 	};
