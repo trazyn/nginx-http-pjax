@@ -1,6 +1,6 @@
 
 /**
- * Nginx hello module
+ * Nginx http PJAX module
  *
  * by trazyn http://www.gituhb.com/trazyn
  * */
@@ -137,8 +137,6 @@ ngx_int_t ngx_http_pjax_add_path( ngx_http_request_t *r, ngx_array_t *filenames,
 
 	return NGX_OK;
 }
-
-/*void *read_file( filename, ngx_open_file_info_t of );*/
 
 static ngx_int_t ngx_http_pjax_handler( ngx_http_request_t *r ) {
 

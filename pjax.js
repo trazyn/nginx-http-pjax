@@ -34,7 +34,7 @@
 
 	function process( url ) {
 	
-		var state;
+		var state, deferred;
 
 		url = typeof url === "string" ? url : window.location.pathname;
 
@@ -45,8 +45,9 @@
 		if ( state && state.content ) {
 
 			settings.container.html( state.content );
-			window.history.pushState( state, state.title, state.url );
 		} else {
+			deferred = $.Deferred();
+
 			request = $.ajax( $.extend( {}, settings.ajaxOptions, {
 				url: url + "?" + +new Date()
 			} ) )
@@ -60,15 +61,15 @@
 					content: data
 				};
 
-				if ( settings.push || settings.replace ) {
-					window.history[ settings.push ? "pushState" : "replaceState" ]( state, document.title, url )
-				}
+				deferred.resolveWith( state );
 
 				if ( settings.cache && settings.maxCacheLength ) {
 					cachePush( state );
 				}
 			} );
 		}
+
+		return deferred;
 	}
 
 	$.support.pjax = 
@@ -79,12 +80,7 @@
 	$.fn.pjax = !$.support.pjax ? $.noop : function( selector, container, options ) {
 		
 		var 
-		
-		state = {
-			id: window.location.pathname,
-			title: document.title,
-			url: window.location.href
-		};
+		state;
 
 		if ( options === undefined ) {
 			
@@ -102,14 +98,15 @@
 			}
 		}
 
-		window.history.pushState( state, document.title, location.href );
-
 		$( window ).on( "popstate.pjax", process  );
 		
 		return this
 			.delegate( selector, "click.pjax", function( e ) {
 
-				var link = e.target;
+				var
+				url,
+				promise,
+				link = e.target;
 				
 				/** Middle click, cmd click, and ctrl click should open links in a new tab as normal */
 				if ( e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey 
@@ -126,10 +123,19 @@
 					return;
 				}
 
+				url = link.getAttribute( "href" );
+
 				e.preventDefault();
 				e.stopPropagation();
 
-				process( link.getAttribute( "href" ) );
+				promise = process( url );
+
+				promise && promise.done( function() {
+					
+					if ( settings.push || settings.replace ) {
+						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, url )
+					}
+				} );
 			} );
 	};
 
