@@ -1,6 +1,8 @@
 
 ( function( $, undefined ) {
 
+	"use strict";
+
 	var 
 
 	settings,
@@ -44,6 +46,7 @@
 
 		if ( state && state.content ) {
 
+			window.history.replaceState( "", "", url );
 			settings.container.html( state.content );
 		} else {
 			deferred = $.Deferred();
@@ -133,7 +136,7 @@
 				promise && promise.done( function() {
 					
 					if ( settings.push || settings.replace ) {
-						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, url )
+						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, url );
 					}
 				} );
 			} );
