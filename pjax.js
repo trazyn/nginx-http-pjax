@@ -48,6 +48,7 @@
 
 			window.history.replaceState( "", "", url );
 			settings.container.html( state.content );
+			settings.after instanceof Function && settings.after( settings );
 		} else {
 			deferred = $.Deferred();
 
@@ -68,6 +69,11 @@
 
 				if ( settings.cache && settings.maxCacheLength ) {
 					cachePush( state );
+				}
+
+				if ( typeof settings.after === "function" ) {
+					
+					settings.after( settings );
 				}
 			} );
 		}
@@ -96,7 +102,7 @@
 
 				case "object":
 					settings = $.extend( true, {}, $.fn.pjax.defaults, container );
-					settings.cintainer = container = $( container );
+					settings.container = container = $( settings.container );
 					break;
 			}
 		}
