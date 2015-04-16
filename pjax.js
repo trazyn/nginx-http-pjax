@@ -48,7 +48,6 @@
 
 			window.history.replaceState( "", "", url );
 			settings.container.html( state.content );
-			settings.after instanceof Function && settings.after( settings );
 		} else {
 			deferred = $.Deferred();
 
@@ -77,6 +76,10 @@
 				}
 			} );
 		}
+
+		$.when( deferred ).done( function() {
+			settings.after instanceof Function && settings.after( settings );
+		} );
 
 		return deferred;
 	}
@@ -145,6 +148,8 @@
 						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, url );
 					}
 				} );
+
+				document.body.scrollTop = 0;
 			} );
 	};
 
