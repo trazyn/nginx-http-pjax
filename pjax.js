@@ -70,10 +70,7 @@
 					cachePush( state );
 				}
 
-				if ( typeof settings.after === "function" ) {
-					
-					settings.after( settings );
-				}
+				settings.after( settings );
 			} );
 		}
 
@@ -161,6 +158,9 @@
 		cache 		: true,
 		push 		: true,
 		replace 	: false,
+
+		after 		: $.noop,
+		before 		: $.noop,
 		
 		ajaxOptions: {
 
