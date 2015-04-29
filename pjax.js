@@ -69,13 +69,15 @@
 				if ( settings.cache && settings.maxCacheLength ) {
 					cachePush( state );
 				}
-
-				settings.after( settings );
 			} );
 		}
 
 		$.when( deferred ).done( function() {
-			settings.after instanceof Function && settings.after( settings );
+
+			/** After the pathname has been changed */
+			setTimeout( function() {
+				settings.after instanceof Function && settings.after( settings );
+			} );
 		} );
 
 		return deferred;
@@ -115,34 +117,29 @@
 				var
 				url,
 				promise,
-				link = e.target;
+				link = $( this ),
+				href = link.attr( "href" ) || link.attr( "data-href" );
 				
 				/** Middle click, cmd click, and ctrl click should open links in a new tab as normal */
 				if ( e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey 
 
-					/** Require an anchor element */
-					|| link.tagName.toUpperCase() !== "A"
-					
-					/** Ignore cross origin links */
-					|| location.protocol !== link.protocol || location.hostname !== link.hostname
-
 					/** Ignore case when a hash is being tacked on the current URL */
-					|| link.href.indexOf( "#" ) === 0) {
+					|| href.indexOf( "#" ) === 0) {
 
 					return;
 				}
 
-				url = link.getAttribute( "href" );
-
 				e.preventDefault();
 				e.stopPropagation();
 
-				promise = process( url );
+				settings.before( settings );
+
+				promise = process( href );
 
 				promise && promise.done( function() {
 					
 					if ( settings.push || settings.replace ) {
-						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, url );
+						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, href );
 					}
 				} );
 
