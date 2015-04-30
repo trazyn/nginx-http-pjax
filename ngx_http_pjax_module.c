@@ -1,4 +1,3 @@
-
 /**
  * Nginx http PJAX module
  *
