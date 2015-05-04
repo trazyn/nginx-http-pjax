@@ -46,7 +46,7 @@
 
 		if ( state && state.content ) {
 
-			window.history.replaceState( "", "", url );
+			window.history.replaceState( "", "", url + window.location.hash );
 			settings.container.html( state.content );
 		} else {
 			deferred = $.Deferred();
@@ -129,21 +129,25 @@
 					return;
 				}
 
-				e.preventDefault();
 				e.stopPropagation();
 
-				settings.before( settings );
+				if ( link.attr( "data-pjax" ) === "true" ) {
 
-				promise = process( href );
+					e.preventDefault();
 
-				promise && promise.done( function() {
-					
-					if ( settings.push || settings.replace ) {
-						window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, href );
-					}
-				} );
+					settings.before( settings );
 
-				document.body.scrollTop = 0;
+					promise = process( href );
+
+					promise && promise.done( function() {
+						
+						if ( settings.push || settings.replace ) {
+							window.history[ settings.push ? "pushState" : "replaceState" ]( this, document.title, href );
+						}
+					} );
+
+					document.body.scrollTop = 0;
+				}
 			} );
 	};
 
