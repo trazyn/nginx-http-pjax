@@ -41,23 +41,23 @@ http {
 
         location / {
 
-		if ( $request_uri = / ) {
-			
-			rewrite ^/$ /views/index.html break;
+                if ( $request_uri = / ) {
+                        
+                        rewrite ^/$ /views/index.html break;
 
-			pjax on;
-			pjax_header views/header.html;
-			pjax_footer views/footer.html;
-		}
+                        pjax on;
+                        pjax_header views/header.html;
+                        pjax_footer views/footer.html;
+                }
 
-		if ( $request_uri ~* ^/([\w/]+)/?$ ) {
-			
-			rewrite ^/([\w/]+)/?$ /views/$1.html break;
+                if ( $request_uri !~* \. ) {
+                        
+                        rewrite ^/([\w/]+).*/? /views/$1.html break;
 
-			pjax on;
-			pjax_header views/header.html;
-			pjax_footer views/footer.html;
-		}
+                        pjax on;
+                        pjax_header views/header.html;
+                        pjax_footer views/footer.html;
+                }
 
         }
     }
