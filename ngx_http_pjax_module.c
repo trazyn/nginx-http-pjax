@@ -140,9 +140,9 @@ ngx_int_t ngx_http_pjax_add_path( ngx_http_request_t *r, ngx_array_t *filenames,
 static ngx_int_t ngx_http_pjax_handler( ngx_http_request_t *r ) {
 
 	off_t 				length;
-	size_t 				last_len, root;
+	size_t 				root;
 	time_t 				last_modified;
-	u_char 				*last;
+	u_char 				*last, *buf;
 	ngx_int_t 			rc;
 	ngx_buf_t 			*b;
 	ngx_chain_t 			out, **last_out, *cl;
@@ -151,7 +151,7 @@ static ngx_int_t ngx_http_pjax_handler( ngx_http_request_t *r ) {
 	ngx_open_file_info_t 		of;
 	ngx_http_core_loc_conf_t 	*clcf;
 	ngx_str_t 			*filename, *uri, path, base;
-	ngx_uint_t 			level;
+	ngx_uint_t 			level, i;
 
 	if ( !(r->method & (NGX_HTTP_GET | NGX_HTTP_HEAD)) ) {
 		return NGX_HTTP_NOT_ALLOWED;
@@ -185,7 +185,11 @@ static ngx_int_t ngx_http_pjax_handler( ngx_http_request_t *r ) {
 	base.len = root + 1;
 	base.data = ngx_pnalloc( r->pool, base.len + 1 );
 
-	ngx_cpymem( base.data, path.data, base.len );
+	buf = ngx_cpymem( base.data, path.data, base.len );
+
+	if ( buf == NULL ) {
+		return NGX_HTTP_INTERNAL_SERVER_ERROR;
+	}
 
 #if (NGX_SUPPRESS_WARN)
 	ngx_memzero( &filenames, sizeof( ngx_array_t ) );
@@ -204,13 +208,12 @@ static ngx_int_t ngx_http_pjax_handler( ngx_http_request_t *r ) {
 	}
 
 	last_modified = 0;
-	last_len = 0;
 	last_out = NULL;
 	b = NULL;
 	length = 0;
 	uri = filenames.elts;
 
-	for ( ngx_uint_t i = 0; i < filenames.nelts; ++i ) {
+	for ( i = 0; i < filenames.nelts; ++i ) {
 
 		filename = uri + i;
 
